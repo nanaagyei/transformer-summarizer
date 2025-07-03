@@ -1,0 +1,37 @@
+# configs/model_config_cpu.yaml
+# CPU-optimized model configuration for Transformer Summarization
+
+model:
+  # Reduced model size for CPU efficiency
+  vocab_size: 30522        # Keep full vocab for better quality
+  d_model: 256             # Reduced from 512 (50% smaller)
+  n_heads: 4               # Reduced from 8 (50% fewer heads)
+  n_layers: 4              # Reduced from 6 (33% fewer layers)
+  d_ff: 1024               # Reduced from 2048 (50% smaller FFN)
+  max_seq_length: 256      # Reduced from 512 (50% shorter sequences)
+  dropout: 0.1             # Keep same for regularization
+
+# Model size estimation: ~25M parameters (vs ~65M for full size)
+# Memory usage: ~2-3GB RAM (vs 8-12GB for full size)
+# Training speed: ~3-5x faster than full size on CPU
+
+tokenizer:
+  name: "bert-base-uncased"
+  max_length: 256          # Match model max_seq_length
+  
+# Progressive scaling options (uncomment to use)
+# For even faster development:
+# extra_small:
+#   d_model: 128
+#   n_heads: 2
+#   n_layers: 2
+#   d_ff: 512
+#   max_seq_length: 128
+
+# For final production model:
+# production:
+#   d_model: 384
+#   n_heads: 6  
+#   n_layers: 6
+#   d_ff: 1536
+#   max_seq_length: 384

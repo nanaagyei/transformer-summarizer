@@ -1,0 +1,82 @@
+# configs/training_config_cpu.yaml
+# CPU-optimized training configuration
+
+data:
+  # Start with smaller dataset for CPU
+  train_samples: 10000      # Reduced from 50000 (manageable for CPU)
+  val_samples: 1000         # Reduced from 5000
+  max_input_length: 256     # Match model config
+  max_target_length: 64     # Reduced from 128 (shorter summaries)
+  
+  # Data loading optimizations for CPU
+  num_workers: 2            # Fewer workers (CPU has fewer cores)
+  pin_memory: false         # No GPU memory pinning needed
+  prefetch_factor: 2        # Moderate prefetching for CPU
+
+training:
+  # CPU-friendly batch sizes
+  batch_size: 4             # Reduced from 8 (fits in CPU memory)
+  gradient_accumulation_steps: 4  # Simulate batch_size=16
+  effective_batch_size: 16  # 4 * 4 = 16 (same as GPU training)
+  
+  # Learning parameters
+  learning_rate: 0.0002     # Slightly higher for smaller model
+  num_epochs: 5             # Fewer epochs initially
+  warmup_steps: 500         # Reduced warmup
+  weight_decay: 0.01
+  gradient_clip_norm: 1.0
+  
+  # Checkpointing (more frequent for CPU)
+  save_every: 500           # Save more frequently
+  eval_every: 250           # Evaluate more frequently
+  max_checkpoints: 3        # Keep fewer checkpoints to save disk space
+
+optimizer:
+  name: "AdamW"
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  amsgrad: false           # Disable for CPU efficiency
+
+scheduler:
+  name: "linear_with_warmup"
+  warmup_ratio: 0.1
+  min_lr: 1e-6
+
+# CPU-specific optimizations
+cpu_optimizations:
+  num_threads: 4           # Adjust based on your CPU cores
+  inter_op_parallelism: 2  # Number of inter-op threads
+  intra_op_parallelism: 4  # Number of intra-op threads
+  use_mixed_precision: false  # Keep float32 on CPU
+  compile_model: false     # Skip torch.compile on CPU
+
+# Memory management
+memory:
+  max_memory_gb: 8         # Adjust based on your RAM
+  empty_cache_frequency: 100  # Clear cache every N steps
+  
+logging:
+  wandb_project: "transformer-summarizer-cpu"
+  wandb_tags: ["cpu", "small-model", "development"]
+  log_every: 50            # More frequent logging
+  log_memory_usage: true   # Monitor RAM usage
+  
+# Development phases
+phases:
+  proof_of_concept:
+    train_samples: 1000
+    val_samples: 100
+    num_epochs: 2
+    batch_size: 2
+    
+  small_scale:
+    train_samples: 5000
+    val_samples: 500
+    num_epochs: 3
+    batch_size: 4
+    
+  production:
+    train_samples: 20000
+    val_samples: 2000
+    num_epochs: 8
+    batch_size: 4

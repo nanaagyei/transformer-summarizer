@@ -1,0 +1,58 @@
+# configs/evaluation_config_cpu.yaml
+# CPU-optimized evaluation configuration
+
+evaluation:
+  # Test dataset size
+  test_samples: 1000        # Smaller test set for faster evaluation
+  batch_size: 4             # Match training batch size
+  
+  # Generation parameters
+  generation:
+    max_length: 64          # Match training target length
+    min_length: 10
+    temperature: 0.8        # Balanced creativity vs coherence
+    top_k: 50               # Top-k sampling
+    top_p: 0.9              # Nucleus sampling
+    do_sample: true         # Enable sampling for diversity
+    num_beams: 1            # Greedy (beam=1) for speed on CPU
+    early_stopping: true
+    
+  # Metrics to compute
+  metrics:
+    rouge: true             # Primary summarization metric
+    bleu: true              # Additional quality metric
+    meteor: false           # Skip for CPU efficiency
+    bertscore: false        # Skip heavy BERT computations
+    custom_metrics: true    # Length, compression ratio, etc.
+    
+  # Performance benchmarking
+  benchmark:
+    enabled: true
+    num_samples: 100        # Smaller benchmark set
+    batch_sizes: [1, 2, 4]  # CPU-appropriate batch sizes
+    measure_memory: true    # RAM usage tracking
+    measure_latency: true   # Inference speed
+    
+  # Quality analysis
+  analysis:
+    save_predictions: true          # Save for manual inspection
+    save_worst_examples: 10         # Examples with lowest ROUGE
+    save_best_examples: 10          # Examples with highest ROUGE
+    analyze_length_distribution: true
+    compute_confidence_scores: false  # Skip for CPU efficiency
+
+# Output configuration
+output:
+  results_dir: "experiments/evaluation_cpu"
+  save_detailed_results: true
+  save_summary_report: true
+  generate_plots: true
+  
+# Performance targets (adjusted for CPU)
+targets:
+  rouge_1: 0.35           # Slightly lower target for smaller model
+  rouge_2: 0.15           # Adjusted for CPU model
+  rouge_l: 0.30           # Main target metric
+  bleu: 0.20              # Secondary target
+  inference_speed: 2.0    # samples/second on CPU
+  memory_usage: 4.0       # GB RAM usage limit

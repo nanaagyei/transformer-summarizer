@@ -1,0 +1,251 @@
+# MPS-optimized training configuration
+
+data:
+  # Larger dataset since MPS is faster
+  train_samples: 20000      # Increased from 10000
+  val_samples: 2000         # Increased from 1000
+  max_input_length: 384     # Match model config
+  max_target_length: 96     # Increased from 64
+  
+  # Data loading optimizations for MPS
+  num_workers: 4            # More workers for MPS
+  pin_memory: false         # Not needed for MPS
+  prefetch_factor: 4        # Higher prefetch for unified memory
+
+training:
+  # MPS-optimized batch sizes
+  batch_size: 6             # Increased from 4 (MPS can handle more)
+  gradient_accumulation_steps: 2  # Reduced since batch size is larger
+  effective_batch_size: 12  # 6 * 2 = 12
+  
+  # Learning parameters
+  learning_rate: 0.0002
+  num_epochs: 8             # More epochs with faster training
+  warmup_steps: 1000        # Increased warmup
+  weight_decay: 0.01
+  gradient_clip_norm: 1.0
+  
+  # Checkpointing
+  save_every: 1000
+  eval_every: 500
+  max_checkpoints: 5
+
+optimizer:
+  name: "AdamW"
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  amsgrad: false
+
+scheduler:
+  name: "linear_with_warmup"
+  warmup_ratio: 0.1
+  min_lr: 1e-6
+
+# MPS-specific optimizations
+mps_optimizations:
+  enable_fallback: true     # Fallback to CPU for unsupported ops
+  memory_fraction: 0.8      # Use 80% of unified memory
+  mixed_precision: false    # Not supported on MPS yet
+  compile_model: false      # torch.compile not ready for MPS
+
+# Memory management for unified memory
+memory:
+  max_memory_gb: 12         # Adjust based on your Mac's RAM
+  empty_cache_frequency: 50 # More frequent cache clearing
+  
+logging:
+  wandb_project: "transformer-summarizer-mps"
+  wandb_tags: ["mps", "apple-silicon", "medium-model"]
+  log_every: 25
+  log_memory_usage: true
+  log_device_utilization: true
+
+# Development phases for MPS
+phases:
+  proof_of_concept:
+    train_samples: 2000
+    val_samples: 200
+    num_epochs: 2
+    batch_size: 4
+    
+  small_scale:
+    train_samples: 8000
+    val_samples: 800
+    num_epochs: 4
+    batch_size: 6
+    
+  production:
+    train_samples: 25000
+    val_samples: 2500
+    num_epochs: 10
+    batch_size: 8
+
+---
+
+# configs/evaluation_config_mps.yaml
+# MPS-optimized evaluation configuration
+
+evaluation:
+  # Larger test dataset
+  test_samples: 2000        # Increased from 1000
+  batch_size: 8             # Larger batches for MPS
+  
+  # Generation parameters
+  generation:
+    max_length: 96
+    min_length: 15
+    temperature: 0.8
+    top_k: 50
+    top_p: 0.9
+    do_sample: true
+    num_beams: 3            # Can afford beam search on MPS
+    early_stopping: true
+    
+  # Metrics to compute
+  metrics:
+    rouge: true
+    bleu: true
+    meteor: true            # Can afford more metrics on MPS
+    bertscore: false        # Still skip heavy BERT computations
+    custom_metrics: true
+    
+  # Performance benchmarking
+  benchmark:
+    enabled: true
+    num_samples: 200        # Larger benchmark set
+    batch_sizes: [1, 2, 4, 8]  # Test more batch sizes
+    measure_memory: true
+    measure_latency: true
+    measure_throughput: true
+    
+  # Quality analysis
+  analysis:
+    save_predictions: true
+    save_worst_examples: 20
+    save_best_examples: 20
+    analyze_length_distribution: true
+    compute_confidence_scores: true  # Can afford on MPS
+
+# Output configuration
+output:
+  results_dir: "experiments/evaluation_mps"
+  save_detailed_results: true
+  save_summary_report: true
+  generate_plots: true
+  
+# Performance targets (higher due to MPS acceleration)
+targets:
+  rouge_1: 0.40           # Higher target with better model
+  rouge_2: 0.18
+  rouge_l: 0.35
+  bleu: 0.25
+  inference_speed: 8.0    # samples/second on MPS
+  memory_usage: 6.0       # GB unified memory usage limit
+
+---
+
+# configs/deployment_config_mps.yaml
+# MPS-optimized deployment configuration
+
+# Model serving configuration
+serving:
+  model_path: "experiments/models/best_model_mps.pth"
+  device: "mps"           # Use MPS for inference
+  fallback_device: "cpu"  # Fallback if MPS unavailable
+  
+  # Inference optimization
+  optimization:
+    enable_mps_fallback: true
+    enable_quantization: false  # Skip quantization on MPS for now
+    enable_onnx: false         # ONNX export not fully supported on MPS
+    batch_inference: true      # MPS can handle batch inference
+    
+  # Generation settings for production
+  generation:
+    max_length: 96
+    min_length: 15
+    temperature: 0.7
+    top_k: 40
+    batch_size: 4           # Batch inference on MPS
+    cache_size: 200         # Larger cache with more memory
+
+# FastAPI configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1              # Single worker for MPS (GPU not shareable)
+  
+  # Request limits (higher due to MPS speed)
+  limits:
+    max_input_length: 3000
+    max_requests_per_minute: 120  # Higher throughput
+    max_concurrent_requests: 8
+    timeout_seconds: 20     # Shorter timeout due to speed
+    
+  # Response configuration
+  response:
+    include_metadata: true
+    include_timing: true
+    include_confidence: true
+    include_device_info: true
+
+# Gradio interface configuration  
+gradio:
+  interface:
+    title: "🍎 Apple Silicon Transformer Summarizer"
+    description: "High-performance text summarization using Apple Silicon GPU acceleration"
+    theme: "soft"
+    
+  # Interface settings
+  settings:
+    max_input_chars: 3000   # Higher limit
+    default_max_length: 80
+    default_min_length: 20
+    show_advanced_options: true
+    enable_examples: true
+    show_performance_info: true
+    
+# Monitoring and logging
+monitoring:
+  enable_logging: true
+  log_level: "INFO"
+  log_requests: true
+  log_performance: true
+  log_device_utilization: true
+  
+  # Metrics collection
+  metrics:
+    track_latency: true
+    track_memory: true
+    track_throughput: true
+    track_request_count: true
+    track_mps_utilization: true
+    
+  # Health checks
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    check_model_loaded: true
+    check_mps_available: true
+    check_memory_usage: true
+
+# Performance optimization for MPS
+performance:
+  # Model optimizations
+  model_optimizations:
+    torch_compile: false      # Not ready for MPS
+    mixed_precision: false    # Not supported on MPS
+    gradient_checkpointing: true  # Save memory
+    
+  # Inference optimizations  
+  inference_optimizations:
+    batch_inference: true     # MPS handles batches well
+    caching: true
+    async_processing: false   # Keep simple for MPS
+    
+  # Memory management for unified memory
+  memory_management:
+    clear_cache_frequency: 50
+    max_cache_size: 100
+    gc_frequency: 100
+    monitor_unified_memory: true

@@ -1,0 +1,45 @@
+# configs/model_config_mps.yaml
+# MPS-optimized model configuration for Apple Silicon
+
+model:
+  # Slightly larger model since MPS can handle more
+  vocab_size: 30522
+  d_model: 384             # Increased from 256 (MPS can handle larger)
+  n_heads: 6               # Increased from 4
+  n_layers: 6              # Increased from 4
+  d_ff: 1536               # Increased from 1024
+  max_seq_length: 384      # Increased from 256
+  dropout: 0.1
+
+# Model size estimation: ~45M parameters (vs ~25M for CPU)
+# Memory usage: ~4-6GB unified memory
+# Training speed: ~2-3x faster than CPU
+
+tokenizer:
+  name: "bert-base-uncased"
+  max_length: 384
+
+# Progressive scaling for MPS
+development_phases:
+  proof_of_concept:
+    d_model: 192
+    n_heads: 3
+    n_layers: 3
+    d_ff: 768
+    max_seq_length: 192
+    
+  small_scale:
+    d_model: 256
+    n_heads: 4
+    n_layers: 4
+    d_ff: 1024
+    max_seq_length: 256
+    
+  production:
+    d_model: 384
+    n_heads: 6
+    n_layers: 6
+    d_ff: 1536
+    max_seq_length: 384
+
+

@@ -1,0 +1,126 @@
+# configs/deployment_config_cpu.yaml
+# CPU-optimized deployment configuration
+
+# Model serving configuration
+serving:
+  model_path: "experiments/models/best_model_cpu.pth"
+  device: "cpu"
+  num_threads: 4           # CPU thread optimization
+  
+  # Inference optimization
+  optimization:
+    enable_jit: false      # Skip JIT compilation on CPU
+    enable_quantization: true   # Use int8 quantization
+    enable_onnx: true      # Export to ONNX for faster inference
+    
+  # Generation settings for production
+  generation:
+    max_length: 64
+    min_length: 10
+    temperature: 0.7       # Slightly more conservative
+    top_k: 40
+    batch_size: 1          # Single sample inference
+    cache_size: 100        # Cache recent results
+
+# FastAPI configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 2             # Fewer workers for CPU
+  
+  # Request limits
+  limits:
+    max_input_length: 2000    # Characters (not tokens)
+    max_requests_per_minute: 60
+    max_concurrent_requests: 4
+    timeout_seconds: 30
+    
+  # Response configuration
+  response:
+    include_metadata: true
+    include_timing: true
+    include_confidence: false  # Skip for CPU efficiency
+
+# Gradio interface configuration  
+gradio:
+  interface:
+    title: "🤖 CPU Transformer Summarizer"
+    description: "Fast text summarization using CPU-optimized Transformer"
+    theme: "soft"
+    
+  # Interface settings
+  settings:
+    max_input_chars: 2000
+    default_max_length: 60
+    default_min_length: 15
+    show_advanced_options: true
+    enable_examples: true
+    
+  # Examples for demo
+  examples:
+    - text: "The rapid advancement of artificial intelligence has transformed industries worldwide. Machine learning algorithms now power everything from recommendation systems to autonomous vehicles. However, this technological revolution also raises important questions about employment, privacy, and ethical AI development."
+      max_length: 50
+      
+    - text: "Climate change represents one of the most pressing challenges of our time. Rising global temperatures are causing ice caps to melt, sea levels to rise, and weather patterns to become increasingly unpredictable. Governments and organizations worldwide are implementing strategies to reduce greenhouse gas emissions."
+      max_length: 40
+
+# Monitoring and logging
+monitoring:
+  enable_logging: true
+  log_level: "INFO"
+  log_requests: true
+  log_performance: true
+  
+  # Metrics collection
+  metrics:
+    track_latency: true
+    track_memory: true
+    track_cpu_usage: true
+    track_request_count: true
+    
+  # Health checks
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    check_model_loaded: true
+    check_memory_usage: true
+
+# Docker configuration for CPU
+docker:
+  base_image: "python:3.9-slim"
+  
+  # CPU-specific optimizations
+  environment:
+    OMP_NUM_THREADS: "4"
+    MKL_NUM_THREADS: "4"
+    TORCH_NUM_THREADS: "4"
+    
+  # Resource limits
+  resources:
+    memory: "4GB"
+    cpus: "2.0"
+    
+  # Startup configuration
+  startup:
+    warmup_requests: 3     # Warm up the model
+    preload_model: true    # Load model at startup
+    
+# Performance optimization
+performance:
+  # Model optimizations
+  model_optimizations:
+    torch_compile: false   # Skip on CPU
+    quantization: "dynamic"  # int8 dynamic quantization
+    pruning: false         # Skip model pruning
+    
+  # Inference optimizations  
+  inference_optimizations:
+    batch_inference: false    # Single sample on CPU
+    caching: true            # Cache frequent requests
+    async_processing: false  # Synchronous on CPU
+    
+  # Memory management
+  memory_management:
+    clear_cache_frequency: 100  # Clear every N requests
+    max_cache_size: 50         # Cache up to 50 results
+    gc_frequency: 200          # Garbage collection frequency

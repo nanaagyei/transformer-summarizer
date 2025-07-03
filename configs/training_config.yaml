@@ -1,0 +1,29 @@
+# configs/training_config.yaml
+data:
+  train_samples: 50000  # Start small for development
+  val_samples: 5000
+  max_input_length: 512
+  max_target_length: 128
+
+training:
+  batch_size: 8
+  learning_rate: 0.0001
+  num_epochs: 10
+  warmup_steps: 1000
+  weight_decay: 0.01
+  gradient_clip_norm: 1.0
+  save_every: 1000
+  eval_every: 500
+
+optimizer:
+  name: "AdamW"
+  betas: [0.9, 0.999]
+  eps: 1e-8
+
+scheduler:
+  name: "linear_with_warmup"
+  warmup_ratio: 0.1
+
+logging:
+  wandb_project: "transformer-summarizer"
+  log_every: 100
