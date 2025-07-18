@@ -67,7 +67,6 @@ class SummarizationDataset(Dataset):
         summary = item['highlights']
 
         # Tokenize article (source)
-        # Hint: Use self.tokenizer with max_length, padding, truncation, return_tensors
         article_encoding = self.tokenizer(
             article,
             max_length=self.max_input_length,
@@ -124,7 +123,6 @@ def load_cnn_dailymail(num_samples: Optional[int] = None, split: str = 'train'):
     print(f"📂 Loading CNN/DailyMail dataset ({split} split)...")
 
     # Load the dataset using the datasets library
-    # Hint: Use load_dataset with the CNN/DailyMail dataset name
     dataset = load_dataset("cnn_dailymail", "3.0.0")
 
     # Get the specific split
@@ -165,7 +163,6 @@ def create_dataloaders(config_path: str = 'configs/training_config_mps.yaml'):
     training_config = config['training']
 
     # Load tokenizer
-    # Hint: Use AutoTokenizer.from_pretrained with 'bert-base-uncased'
     tokenizer = AutoTokenizer.from_pretrained('bert-base-uncased')
 
     # Add special tokens if they don't exist

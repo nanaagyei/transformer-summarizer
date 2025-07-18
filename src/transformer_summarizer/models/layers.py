@@ -640,9 +640,6 @@ def create_causal_mask(size: int) -> torch.Tensor:
     return mask == 0  # Invert: True where we can attend, False where we can't
 
 
-# =============================================================================
-# TESTING FUNCTIONS
-# =============================================================================
 
 def test_feed_forward():
     """

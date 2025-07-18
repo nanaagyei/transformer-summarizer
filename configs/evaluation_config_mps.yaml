@@ -1,0 +1,56 @@
+evaluation:
+  # Larger test dataset
+  test_samples: 2000 # Increased from 1000
+  batch_size: 8 # Larger batches for MPS
+
+  # Generation parameters
+  generation:
+    max_length: 96
+    min_length: 15
+    temperature: 0.8
+    top_k: 50
+    top_p: 0.9
+    do_sample: true
+    num_beams: 3 # Can afford beam search on MPS
+    early_stopping: true
+
+  # Metrics to compute
+  metrics:
+    rouge: true
+    bleu: true
+    meteor: true # Can afford more metrics on MPS
+    bertscore: false # Still skip heavy BERT computations
+    custom_metrics: true
+
+  # Performance benchmarking
+  benchmark:
+    enabled: true
+    num_samples: 200 # Larger benchmark set
+    batch_sizes: [1, 2, 4, 8] # Test more batch sizes
+    measure_memory: true
+    measure_latency: true
+    measure_throughput: true
+
+  # Quality analysis
+  analysis:
+    save_predictions: true
+    save_worst_examples: 20
+    save_best_examples: 20
+    analyze_length_distribution: true
+    compute_confidence_scores: true # Can afford on MPS
+
+# Output configuration
+output:
+  results_dir: "experiments/evaluation_mps"
+  save_detailed_results: true
+  save_summary_report: true
+  generate_plots: true
+
+# Performance targets (higher due to MPS acceleration)
+targets:
+  rouge_1: 0.40 # Higher target with better model
+  rouge_2: 0.18
+  rouge_l: 0.35
+  bleu: 0.25
+  inference_speed: 8.0 # samples/second on MPS
+  memory_usage: 6.0 # GB unified memory usage limit

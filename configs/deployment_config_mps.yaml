@@ -1,0 +1,104 @@
+# MPS-optimized deployment configuration
+
+# Model serving configuration
+serving:
+  model_path: "experiments/models/best_model_mps.pth"
+  device: "mps"           # Use MPS for inference
+  fallback_device: "cpu"  # Fallback if MPS unavailable
+  
+  # Inference optimization
+  optimization:
+    enable_mps_fallback: true
+    enable_quantization: false  # Skip quantization on MPS for now
+    enable_onnx: false         # ONNX export not fully supported on MPS
+    batch_inference: true      # MPS can handle batch inference
+    
+  # Generation settings for production
+  generation:
+    max_length: 96
+    min_length: 15
+    temperature: 0.7
+    top_k: 40
+    batch_size: 4           # Batch inference on MPS
+    cache_size: 200         # Larger cache with more memory
+
+# FastAPI configuration
+api:
+  host: "0.0.0.0"
+  port: 8000
+  workers: 1              # Single worker for MPS (GPU not shareable)
+  
+  # Request limits (higher due to MPS speed)
+  limits:
+    max_input_length: 3000
+    max_requests_per_minute: 120  # Higher throughput
+    max_concurrent_requests: 8
+    timeout_seconds: 20     # Shorter timeout due to speed
+    
+  # Response configuration
+  response:
+    include_metadata: true
+    include_timing: true
+    include_confidence: true
+    include_device_info: true
+
+# Gradio interface configuration  
+gradio:
+  interface:
+    title: "🍎 Apple Silicon Transformer Summarizer"
+    description: "High-performance text summarization using Apple Silicon GPU acceleration"
+    theme: "soft"
+    
+  # Interface settings
+  settings:
+    max_input_chars: 3000   # Higher limit
+    default_max_length: 80
+    default_min_length: 20
+    show_advanced_options: true
+    enable_examples: true
+    show_performance_info: true
+    
+# Monitoring and logging
+monitoring:
+  enable_logging: true
+  log_level: "INFO"
+  log_requests: true
+  log_performance: true
+  log_device_utilization: true
+  
+  # Metrics collection
+  metrics:
+    track_latency: true
+    track_memory: true
+    track_throughput: true
+    track_request_count: true
+    track_mps_utilization: true
+    
+  # Health checks
+  health_check:
+    enabled: true
+    endpoint: "/health"
+    check_model_loaded: true
+    check_mps_available: true
+    check_memory_usage: true
+
+# Performance optimization for MPS
+performance:
+  # Model optimizations
+  model_optimizations:
+    torch_compile: false      # Not ready for MPS
+    mixed_precision: false    # Not supported on MPS
+    gradient_checkpointing: true  # Save memory
+    
+  # Inference optimizations  
+  inference_optimizations:
+    batch_inference: true     # MPS handles batches well
+    caching: true
+    async_processing: false   # Keep simple for MPS
+    
+  # Memory management for unified memory
+  memory_management:
+    clear_cache_frequency: 50
+    max_cache_size: 100
+    gc_frequency: 100
+    monitor_unified_memory: true

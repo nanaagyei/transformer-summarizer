@@ -1,0 +1,22 @@
+logging:
+  log_every: 10
+  use_wandb: false
+  wandb_project: test-transformer
+  wandb_tags:
+  - test
+optimizer:
+  betas:
+  - 0.9
+  - 0.999
+  eps: 1.0e-08
+scheduler:
+  warmup_ratio: 0.1
+training:
+  early_stopping_patience: 3
+  eval_every: 50
+  gradient_accumulation_steps: 1
+  gradient_clip_norm: 1.0
+  learning_rate: 0.001
+  num_epochs: 1
+  save_every: 100
+  weight_decay: 0.01
