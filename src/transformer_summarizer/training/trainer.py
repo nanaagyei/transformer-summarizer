@@ -131,7 +131,7 @@ class TransformerTrainer:
             None
 
         Returns:
-            None
+            torch.optim.Optimizer: The configured AdamW optimizer
         """
         optimizer = optim.AdamW(
             self.model.parameters(),
@@ -151,8 +151,10 @@ class TransformerTrainer:
             None
 
         Returns:
-            None
+            torch.optim.lr_scheduler._LRScheduler: The configured learning rate scheduler
         """
+        # TODO: Calculate actual steps based on dataset size and batch size
+        # For now, use a reasonable estimate
         total_steps = self.config['training']['num_epochs'] * 1000  # Estimate
         warmup_steps = int(
             total_steps * self.config['scheduler']['warmup_ratio'])
@@ -505,8 +507,7 @@ class TransformerTrainer:
             f"📊 Training for {self.config['training']['num_epochs']} epochs")
         self.logger.info(f"📊 {len(train_loader)} batches per epoch")
         self.logger.info(
-            f"📊 Effective batch size: {train_loader.batch_size * self.config['training'].get('gradient_accumulation_steps', 1)}")
-
+            f"📊 Effective batch size: {self.config['training']['batch_size'] * self.config['training'].get('gradient_accumulation_steps', 1)}")
         start_time = time.time()
 
         for epoch in range(self.current_epoch, self.config['training']['num_epochs']):

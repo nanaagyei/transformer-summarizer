@@ -10,7 +10,7 @@ evaluation:
     temperature: 0.8
     top_k: 50
     top_p: 0.9
-    do_sample: true
+    do_sample: false
     num_beams: 3 # Can afford beam search on MPS
     early_stopping: true
 
@@ -26,9 +26,12 @@ evaluation:
   benchmark:
     enabled: true
     num_samples: 200 # Larger benchmark set
+    warmup_batches: 2   # ignore compile-time
+    seed: 42            # deterministic throughput
     batch_sizes: [1, 2, 4, 8] # Test more batch sizes
     measure_memory: true
     measure_latency: true
+    measure_throughput: true
     measure_throughput: true
 
   # Quality analysis

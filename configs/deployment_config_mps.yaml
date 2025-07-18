@@ -8,7 +8,7 @@ serving:
   
   # Inference optimization
   optimization:
-    enable_mps_fallback: true
+    # enable_mps_fallback: true
     enable_quantization: false  # Skip quantization on MPS for now
     enable_onnx: false         # ONNX export not fully supported on MPS
     batch_inference: true      # MPS can handle batch inference
