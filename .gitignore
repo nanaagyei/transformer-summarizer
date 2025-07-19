@@ -56,3 +56,28 @@ experiments/models/*.bin
 logs/
 wandb/
 mlruns/
+
+# SSH Keys and Cloud Configuration (Sensitive)
+vastai*
+*.pem
+*.pub
+.local_config/
+ssh_*.json
+*_setup.json
+*_job.json
+
+# System files
+.DS_Store
+Thumbs.db
+
+# Experiments and training artifacts
+experiments/logs/
+experiments/models/
+experiments/remote_training/
+
+# Cost and billing information
+cost_estimator.json
+
+# Temporary files
+*.tmp
+*.temp

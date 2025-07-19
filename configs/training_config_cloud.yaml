@@ -1,0 +1,90 @@
+# Cloud-optimized training configuration for GPU instances
+# Designed for Vast.ai, Modal, JarvisLabs, and other cloud GPU providers
+
+data:
+  # Larger dataset for cloud GPUs
+  train_samples: 50000 # Much larger dataset
+  val_samples: 5000 # Larger validation set
+  max_input_length: 512 # Longer sequences
+  max_target_length: 128 # Longer summaries
+
+  # Data loading optimizations for cloud GPUs
+  num_workers: 8 # More workers for cloud instances
+  pin_memory: true # Enable for GPU training
+  prefetch_factor: 4 # Higher prefetch for cloud storage
+
+training:
+  # Cloud GPU-optimized batch sizes
+  batch_size: 16 # Larger batches for cloud GPUs
+  gradient_accumulation_steps: 2 # Effective batch size = 32
+  effective_batch_size: 32 # 16 * 2 = 32
+
+  # Learning parameters optimized for cloud training
+  learning_rate: 0.0001 # Slightly lower for larger batches
+  num_epochs: 15 # More epochs for better convergence
+  warmup_steps: 2000 # Longer warmup
+  weight_decay: 0.01
+  gradient_clip_norm: 1.0
+
+  # Checkpointing for cloud training
+  save_every: 2000 # Save less frequently
+  eval_every: 1000 # Evaluate more frequently
+  max_checkpoints: 10 # Keep more checkpoints
+
+optimizer:
+  name: "AdamW"
+  betas: [0.9, 0.999]
+  eps: 1e-8
+  amsgrad: false
+
+scheduler:
+  name: "linear_with_warmup"
+  warmup_ratio: 0.1
+  min_lr: 1e-6
+
+# Cloud-specific optimizations
+cloud_optimizations:
+  enable_mixed_precision: true # Use FP16 for faster training
+  compile_model: true # Use torch.compile if available
+  gradient_checkpointing: false # Disable for cloud GPUs (more memory)
+  use_amp: true # Automatic mixed precision
+
+# Memory management for cloud GPUs
+memory:
+  max_memory_gb: 24 # Cloud GPUs have more memory
+  empty_cache_frequency: 100 # Less frequent cache clearing
+
+logging:
+  wandb_project: "transformer-summarizer-cloud"
+  wandb_tags: ["cloud", "gpu", "large-model"]
+  log_every: 50
+  log_memory_usage: true
+  log_device_utilization: true
+  use_wandb: true
+
+# Cloud storage configuration
+storage:
+  save_to_cloud: true
+  cloud_provider: "s3" # or "gcs", "azure"
+  bucket_name: "your-bucket-name"
+  results_path: "experiments/cloud_training"
+
+# Development phases for cloud training
+phases:
+  proof_of_concept:
+    train_samples: 5000
+    val_samples: 500
+    num_epochs: 3
+    batch_size: 8
+
+  small_scale:
+    train_samples: 20000
+    val_samples: 2000
+    num_epochs: 8
+    batch_size: 16
+
+  production:
+    train_samples: 100000
+    val_samples: 10000
+    num_epochs: 20
+    batch_size: 32

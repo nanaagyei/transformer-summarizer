@@ -1,0 +1,114 @@
+# Vast.ai specific configuration for PyTorch training
+# Based on official Vast.ai PyTorch documentation: https://docs.vast.ai/pytorch
+
+# Instance configuration
+instance:
+  # GPU specifications
+  gpu_type: "RTX_4090" # Cost-effective with 24GB VRAM
+  gpu_count: 1
+  min_gpu_memory: "8GB" # Vast.ai recommendation
+
+  # Storage and memory
+  disk_space: 100 # GB - for datasets and checkpoints
+  min_disk_space: "50GB" # Vast.ai recommendation
+
+  # Network
+  min_internet_speed: "100Mbps" # Vast.ai recommendation
+
+  # Pricing
+  price_max: 0.50 # $/hr maximum
+  use_spot: true # Use spot instances for cost savings
+
+# PyTorch environment
+pytorch:
+  version: "2.1.0"
+  cuda_version: "12.1"
+  image: "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime"
+
+  # Installation method (Vast.ai recommendation)
+  install_method: "pip"
+  install_url: "https://download.pytorch.org/whl/cu121"
+
+# Training optimization for Vast.ai
+training:
+  # Batch sizes optimized for RTX 4090
+  batch_size: 16
+  gradient_accumulation_steps: 2
+  effective_batch_size: 32
+
+  # Memory management
+  max_memory_usage: "20GB" # Leave 4GB for system
+  empty_cache_frequency: 100 # Clear cache every 100 steps
+
+  # Mixed precision (Vast.ai recommendation)
+  use_amp: true
+  use_fp16: true
+
+  # Data loading optimization
+  num_workers: 8
+  pin_memory: true
+  prefetch_factor: 4
+
+# Monitoring and logging
+monitoring:
+  # System monitoring (Vast.ai recommendation)
+  log_gpu_usage: true
+  log_memory_usage: true
+  log_disk_usage: true
+  log_interval: 300 # 5 minutes
+
+  # Training monitoring
+  log_every: 50
+  save_every: 1000
+  eval_every: 500
+
+  # Log file locations
+  log_dir: "experiments/logs"
+  model_dir: "experiments/models"
+  checkpoint_dir: "experiments/checkpoints"
+
+# Data management
+data:
+  # Dataset specifications
+  train_samples: 50000
+  val_samples: 5000
+  max_input_length: 512
+  max_target_length: 128
+
+  # Data loading
+  cache_dir: "/tmp/datasets"
+  download_retries: 3
+  download_timeout: 300
+
+# Environment variables
+environment:
+  CUDA_VISIBLE_DEVICES: "0"
+  TOKENIZERS_PARALLELISM: "false"
+  PYTHONPATH: "${PYTHONPATH}:$(pwd)"
+  OMP_NUM_THREADS: "4"
+  MKL_NUM_THREADS: "4"
+
+# Error handling and recovery
+error_handling:
+  max_retries: 3
+  retry_delay: 60 # seconds
+  save_checkpoint_on_error: true
+  keep_instance_on_error: true # For debugging
+
+# Cost optimization
+cost_optimization:
+  # Instance selection criteria
+  preferred_gpu_types: ["RTX_4090", "RTX_3090", "A100"]
+  max_price_per_hour: 0.50
+  use_spot_instances: true
+
+  # Training optimization
+  early_stopping_patience: 3
+  max_training_hours: 24
+  auto_destroy_instance: true
+
+# Security
+security:
+  ssh_key_path: "~/.ssh/id_rsa.pub"
+  api_key_env_var: "VAST_API_KEY"
+  secure_data_transfer: true

@@ -1,0 +1,13 @@
+{
+  "image": "pytorch/pytorch:2.1.0-cuda12.1-cudnn8-runtime",
+  "gpu_count": 1,
+  "gpu_type": "RTX_4090",
+  "disk_space": 100,
+  "price_max": 0.5,
+  "ssh_key": "YOUR_SSH_PUBLIC_KEY_HERE",
+  "startup_script": "#!/bin/bash\nset -e\necho \"🚀 Starting Vast.ai setup...\"\napt-get update\napt-get install -y git wget curl htop\necho \"🔍 Checking GPU availability...\"\nnvidia-smi\necho \"📥 Cloning repository...\"\ngit clone https://github.com/YOUR_USERNAME/transformer-summarizer.git\ncd transformer-summarizer\nmkdir -p experiments/models\necho \"✅ Setup complete!\"\ntail -f /dev/null",
+  "environment": {
+    "cuda_version": "12.1",
+    "pytorch_version": "2.1.0"
+  }
+} 
