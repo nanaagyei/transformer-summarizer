@@ -46,9 +46,11 @@ class TransformerTrainer:
         self.optimizer = self.setup_optimizer()
         self.scheduler = self.setup_scheduler()
 
-        # Loss function
+        # Loss function with label smoothing for more stable optimization from scratch
         self.criterion = nn.CrossEntropyLoss(
-            ignore_index=self.model.pad_token_id)
+            ignore_index=self.model.pad_token_id,
+            label_smoothing=0.1
+        )
 
         # Training state
         self.current_epoch = 0

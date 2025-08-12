@@ -20,15 +20,15 @@ training:
   effective_batch_size: 32 # 16 * 2 = 32
 
   # Learning parameters optimized for cloud training
-  learning_rate: 0.0001 # Slightly lower for larger batches
+  learning_rate: 3e-5 # More conservative LR for training from scratch
   num_epochs: 15 # More epochs for better convergence
-  warmup_steps: 2000 # Longer warmup
+  warmup_steps: 1000 # Moderate warmup
   weight_decay: 0.01
   gradient_clip_norm: 1.0
 
   # Checkpointing for cloud training
   save_every: 2000 # Save less frequently
-  eval_every: 1000 # Evaluate more frequently
+  eval_every: 200 # Evaluate more frequently to see ROUGE earlier
   max_checkpoints: 10 # Keep more checkpoints
 
 optimizer:
@@ -57,7 +57,7 @@ memory:
 logging:
   wandb_project: "transformer-summarizer-cloud"
   wandb_tags: ["cloud", "gpu", "large-model"]
-  log_every: 50
+  log_every: 25
   log_memory_usage: true
   log_device_utilization: true
   use_wandb: true
@@ -88,3 +88,6 @@ phases:
     val_samples: 10000
     num_epochs: 20
     batch_size: 32
+
+# Model configuration
+model_config: configs/model_config.yaml

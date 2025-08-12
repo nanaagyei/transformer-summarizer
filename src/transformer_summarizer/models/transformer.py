@@ -115,6 +115,8 @@ class Transformer(nn.Module):
         )
 
         self.output_projection = nn.Linear(self.d_model, self.vocab_size)
+        # Tie output projection weights to input token embeddings to improve convergence
+        self.output_projection.weight = self.token_embedding.weight
 
         self.dropout = nn.Dropout(self.config["dropout"])
 
